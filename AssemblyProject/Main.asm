@@ -30,52 +30,71 @@ main PROC
 
 	; Infinite loop
 	gameLoop:
+		; while the player's position is greater to the ground
+		gravity:
+		cmp yPos,27
+		jg onGround
+		;make player fall
+		call UpdatePlayer	
+		inc yPos
+		call DrawPlayer	
+		; Delay the fall of the player
+		mov eax,80
+		call Delay
 
-	; Reads the user input and stores it in inputChar
-	call ReadChar
-	mov inputChar, al
+		jmp	gravity
 
-	; compare inputChar to X
-	cmp inputChar,"x"
-	; if it is equal, jump to ExitGame
-	je ExitGame
+		onGround:
+		; Reads the user input and stores it in inputChar
+		call ReadChar
+		mov inputChar, al
+		; compare inputChar to X
+		cmp inputChar,"x"
+		; if it is equal, jump to ExitGame
+		je ExitGame
 
-	cmp inputChar,"w"
-	je moveUp
+		cmp inputChar,"w"
+		je moveUp
 
-	cmp inputChar,"s"
-	je moveDown
+		cmp inputChar,"s"
+		je moveDown
 	
-	cmp inputChar,"a"
-	je moveLeft
+		cmp inputChar,"a"
+		je moveLeft
 
-	cmp inputChar,"d"
-	je moveRight
+		cmp inputChar,"d"
+		je moveRight
 
-	moveUp:
-	call UpdatePlayer
-	; decrease
-	dec	yPos
-	call DrawPlayer	
-	jmp	gameLoop
+		moveUp:
+		; change to ecx register so we can loop
+		mov ecx, 3
+		jumpLoop:
+			call UpdatePlayer
+			; decrease
+			dec	yPos
+			call DrawPlayer	
+			mov eax,10
+			call Delay
+			loop jumpLoop
+		jmp	gameLoop
 
-	moveDown:
-	call UpdatePlayer
-	; increase
-	inc yPos
-	call DrawPlayer
-	jmp	gameLoop
+		moveDown:
+		call UpdatePlayer
+		; increase
+		inc yPos
+		call DrawPlayer
+		jmp	gameLoop
 
-	moveLeft:
-	call UpdatePlayer
-	dec xPos
-	call DrawPlayer	
-	jmp	gameLoop
+		moveLeft:
+		call UpdatePlayer
+		dec xPos
+		call DrawPlayer	
+		jmp	gameLoop
 
-	moveRight:
-	call UpdatePlayer
-	inc xPos
-	call DrawPlayer	
+		moveRight:
+		call UpdatePlayer
+		inc xPos
+		call DrawPlayer	
 
 	jmp	gameLoop
 
