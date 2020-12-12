@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.16.27044.0	    11/16/20 01:29:39
+Microsoft (R) Macro Assembler Version 14.16.27044.0	    12/12/20 20:54:26
 Main.asm						     Page 1 - 1
 
 
@@ -24,7 +24,7 @@ Main.asm						     Page 1 - 1
  00000000			.data
 
 				; string on the for the console, there is 0 at the end to stop reading
- 00000000 2D 2D 2D 2D 2D	ground BYTE "--------------------------------------------------------------------------------------------------", 0
+ 00000000 2D 2D 2D 2D 2D	ground BYTE "-------------------------------------------------------------------------------------------------------------------", 0
 	   2D 2D 2D 2D 2D
 	   2D 2D 2D 2D 2D
 	   2D 2D 2D 2D 2D
@@ -43,13 +43,26 @@ Main.asm						     Page 1 - 1
 	   2D 2D 2D 2D 2D
 	   2D 2D 2D 2D 2D
 	   2D 2D 2D 2D 2D
-	   2D 2D 2D 00
+	   2D 2D 2D 2D 2D
+	   2D 2D 2D 2D 2D
+	   2D 2D 2D 2D 2D
+	   2D 2D 2D 2D 2D
+	   00
+
+ 00000074 53 63 6F 72 65	strScore BYTE "Score: ", 0
+	   3A 20 00
+ 0000007C 00			score BYTE 0
 
 				; player position
- 00000063 14			xPos BYTE 20
- 00000064 14			yPos BYTE 20
+ 0000007D 14			xPos BYTE 20
+ 0000007E 14			yPos BYTE 20
 
- 00000065 00			inputChar BYTE ?
+				; ? - unknown
+ 0000007F 00			xCoinPos BYTE ?
+ 00000080 00			yCoinPos BYTE ?
+
+
+ 00000081 00			inputChar BYTE ?
 
  00000000			.code
 				; main functoin of the program
@@ -60,119 +73,167 @@ Main.asm						     Page 1 - 1
  00000002  B6 1D			mov dh,29
  00000004  E8 00000000 E		call Gotoxy
 
-					; move to edx 32bit register, it is only 32bit, so we call WriteString again and again
+					; move to edx 32bit register, and call it hit hit 0
  00000009  BA 00000000 R		mov edx, OFFSET ground
  0000000E  E8 00000000 E		call WriteString
 					;
 
 					;Player
- 00000013  E8 000000CC			call DrawPlayer
+ 00000013  E8 000000FF			call DrawPlayer
+
+ 00000018  E8 0000014F			call CreateRandomCoin 
+ 0000001D  E8 00000127			call DrawCoin 
 
 					; Infinite loop
- 00000018				gameLoop:
+ 00000022				gameLoop:
+						; set the color to normal, otherwise makes everything the color of the coin
+ 00000022  B8 0000000F				mov eax, white (black *16)
+ 00000027  E8 00000000 E			call SetTextColor
+
+						; draw Score :
+						; set position to the top left
+ 0000002C  B6 00				mov dh,0
+ 0000002E  B2 00				mov dl,0
+ 00000030  E8 00000000 E			call Gotoxy
+						; move to edx 32bit register, it is only 32bit, so we call WriteString again and again till hit 0
+ 00000035  BA 00000074 R			mov edx,OFFSET	strScore
+ 0000003A  E8 00000000 E			call WriteString
+ 0000003F  A0 0000007C R			mov al, score
+ 00000044  04 30				add al, '0' ; int into char
+ 00000046  E8 00000000 E			call WriteChar
+						
 						; while the player's position is greater to the ground
- 00000018					gravity:
- 00000018  80 3D 00000064 R			cmp yPos,27
+ 0000004B					gravity:
+ 0000004B  80 3D 0000007E R			cmp yPos,27
 	   1B
- 0000001F  7F 1C				jg onGround
+ 00000052  7F 1C				jg onGround
 						;make player fall
- 00000021  E8 000000D7				call UpdatePlayer	
- 00000026  FE 05 00000064 R			inc yPos
- 0000002C  E8 000000B3				call DrawPlayer	
+ 00000054  E8 000000D7				call UpdatePlayer	
+ 00000059  FE 05 0000007E R			inc yPos
+ 0000005F  E8 000000B3				call DrawPlayer	
 						; Delay the fall of the player
- 00000031  B8 00000050				mov eax,80
- 00000036  E8 00000000 E			call Delay
+ 00000064  B8 00000050				mov eax,80
+ 00000069  E8 00000000 E			call Delay
 
- 0000003B  EB DB				jmp	gravity
+ 0000006E  EB DB				jmp	gravity
 
- 0000003D					onGround:
+ 00000070					onGround:
 						; Reads the user input and stores it in inputChar
- 0000003D  E8 00000000 E			call ReadChar
- 00000042  A2 00000065 R			mov inputChar, al
+ 00000070  E8 00000000 E			call ReadChar
+ 00000075  A2 00000081 R			mov inputChar, al
 						; compare inputChar to X
- 00000047  80 3D 00000065 R			cmp inputChar,"x"
+ 0000007A  80 3D 00000081 R			cmp inputChar,"x"
 	   78
 						; if it is equal, jump to ExitGame
- 0000004E  0F 84 00000089			je ExitGame
+ 00000081  0F 84 00000089			je ExitGame
 
- 00000054  80 3D 00000065 R			cmp inputChar,"w"
+ 00000087  80 3D 00000081 R			cmp inputChar,"w"
 	   77
- 0000005B  74 1B				je moveUp
+ 0000008E  74 1B				je moveUp
 
- 0000005D  80 3D 00000065 R			cmp inputChar,"s"
+ 00000090  80 3D 00000081 R			cmp inputChar,"s"
 	   73
- 00000064  74 38				je moveDown
+ 00000097  74 38				je moveDown
 					
- 00000066  80 3D 00000065 R			cmp inputChar,"a"
+ 00000099  80 3D 00000081 R			cmp inputChar,"a"
 	   61
- 0000006D  74 44				je moveLeft
+ 000000A0  74 44				je moveLeft
 
- 0000006F  80 3D 00000065 R			cmp inputChar,"d"
+ 000000A2  80 3D 00000081 R			cmp inputChar,"d"
 	   64
- 00000076  74 50				je moveRight
+ 000000A9  74 50				je moveRight
 
- 00000078					moveUp:
- 00000078  B9 00000003				mov ecx, 3
- 0000007D					jumpLoop:
- 0000007D  E8 0000007B					call UpdatePlayer
+ 000000AB					moveUp:
+						; change to ecx register so we can loop
+ 000000AB  B9 00000003				mov ecx, 3
+ 000000B0					jumpLoop:
+ 000000B0  E8 0000007B					call UpdatePlayer
 							; decrease
- 00000082  FE 0D 00000064 R				dec	yPos
- 00000088  E8 00000057					call DrawPlayer	
- 0000008D  B8 0000000A					mov eax,10
- 00000092  E8 00000000 E				call Delay
- 00000097  E2 E4					loop jumpLoop
- 00000099  E9 FFFFFF7A				jmp	gameLoop
+ 000000B5  FE 0D 0000007E R				dec	yPos
+ 000000BB  E8 00000057					call DrawPlayer	
+ 000000C0  B8 0000000A					mov eax,10
+ 000000C5  E8 00000000 E				call Delay
+ 000000CA  E2 E4					loop jumpLoop
+ 000000CC  E9 FFFFFF51				jmp	gameLoop
 
- 0000009E					moveDown:
- 0000009E  E8 0000005A				call UpdatePlayer
+ 000000D1					moveDown:
+ 000000D1  E8 0000005A				call UpdatePlayer
 						; increase
- 000000A3  FE 05 00000064 R			inc yPos
- 000000A9  E8 00000036				call DrawPlayer
- 000000AE  E9 FFFFFF65				jmp	gameLoop
+ 000000D6  FE 05 0000007E R			inc yPos
+ 000000DC  E8 00000036				call DrawPlayer
+ 000000E1  E9 FFFFFF3C				jmp	gameLoop
 
- 000000B3					moveLeft:
- 000000B3  E8 00000045				call UpdatePlayer
- 000000B8  FE 0D 00000063 R			dec xPos
- 000000BE  E8 00000021				call DrawPlayer	
- 000000C3  E9 FFFFFF50				jmp	gameLoop
+ 000000E6					moveLeft:
+ 000000E6  E8 00000045				call UpdatePlayer
+ 000000EB  FE 0D 0000007D R			dec xPos
+ 000000F1  E8 00000021				call DrawPlayer	
+ 000000F6  E9 FFFFFF27				jmp	gameLoop
 
- 000000C8					moveRight:
- 000000C8  E8 00000030				call UpdatePlayer
- 000000CD  FE 05 00000063 R			inc xPos
- 000000D3  E8 0000000C				call DrawPlayer	
+ 000000FB					moveRight:
+ 000000FB  E8 00000030				call UpdatePlayer
+ 00000100  FE 05 0000007D R			inc xPos
+ 00000106  E8 0000000C				call DrawPlayer	
 
- 000000D8  E9 FFFFFF3B			jmp	gameLoop
+ 0000010B  E9 FFFFFF12			jmp	gameLoop
 
- 000000DD				ExitGame:
+ 00000110				ExitGame:
 					exit
- 000000DD  6A 00	   *	    push   +000000000h
- 000000DF  E8 00000000 E   *	    call   ExitProcess
- 000000E4			main ENDP
+ 00000110  6A 00	   *	    push   +000000000h
+ 00000112  E8 00000000 E   *	    call   ExitProcess
+ 00000117			main ENDP
 
- 000000E4			DrawPlayer PROC	
+ 00000117			DrawPlayer PROC	
 					; Set the positoin of the player
- 000000E4  8A 15 00000063 R		mov dl, xPos
- 000000EA  8A 35 00000064 R		mov dh, yPos
- 000000F0  E8 00000000 E		call Gotoxy 
+ 00000117  8A 15 0000007D R		mov dl, xPos
+ 0000011D  8A 35 0000007E R		mov dh, yPos
+ 00000123  E8 00000000 E		call Gotoxy 
 
 					; Draw the player
- 000000F5  B0 58			mov al,"X"
- 000000F7  E8 00000000 E		call WriteChar
- 000000FC  C3				ret	
- 000000FD			DrawPlayer ENDP	
+ 00000128  B0 58			mov al,"X"
+ 0000012A  E8 00000000 E		call WriteChar
+ 0000012F  C3				ret	
+ 00000130			DrawPlayer ENDP	
 
 				; Removes the player from the old position
- 000000FD			UpdatePlayer PROC	
- 000000FD  8A 15 00000063 R		mov dl, xPos
- 00000103  8A 35 00000064 R		mov dh, yPos
- 00000109  E8 00000000 E		call Gotoxy 
- 0000010E  B0 20			mov al," "
- 00000110  E8 00000000 E		call WriteChar
- 00000115  C3				ret	
- 00000116			UpdatePlayer ENDP	
+ 00000130			UpdatePlayer PROC	
+ 00000130  8A 15 0000007D R		mov dl, xPos
+ 00000136  8A 35 0000007E R		mov dh, yPos
+ 0000013C  E8 00000000 E		call Gotoxy 
+ 00000141  B0 20			mov al," "
+ 00000143  E8 00000000 E		call WriteChar
+ 00000148  C3				ret	
+ 00000149			UpdatePlayer ENDP	
+
+ 00000149			DrawCoin PROC
+					; set Coin color
+ 00000149  B8 000000EE			mov eax, yellow (yellow *16)
+ 0000014E  E8 00000000 E		call SetTextColor
+					; dl  - x position register
+ 00000153  8A 15 0000007F R		mov dl,xCoinPos
+					; dl  - y position register
+ 00000159  8A 35 00000080 R		mov dh,yCoinPos
+ 0000015F  E8 00000000 E		call Gotoxy
+ 00000164  B0 4F			mov al, "O"
+ 00000166  E8 00000000 E		call WriteChar
+					; return
+ 0000016B  C3				ret
+ 0000016C			DrawCoin ENDP
+
+
+				; random positoin of the coin, it does not draw it
+ 0000016C			CreateRandomCoin PROC 
+ 0000016C  B8 00000037			mov eax,55
+ 00000171  E8 00000000 E		call RandomRange
+					; al is 8 bit, that is why it is used
+ 00000176  A2 0000007F R		mov xCoinPos,al
+					; ground starts at 28, so the coints must be above it
+ 0000017B  C6 05 00000080 R		mov yCoinPos,27
+	   1B
+ 00000182  C3				ret	
+ 00000183			CreateRandomCoin ENDP
 
 				END main
-Microsoft (R) Macro Assembler Version 14.16.27044.0	    11/16/20 01:29:39
+Microsoft (R) Macro Assembler Version 14.16.27044.0	    12/12/20 20:54:26
 Main.asm						     Symbols 2 - 1
 
 
@@ -266,8 +327,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000066 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000116 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000082 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000183 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -279,9 +340,11 @@ CloseHandle  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 Clrscr . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CreateFileA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+CreateRandomCoin . . . . . . . .	P Near	 0000016C _TEXT	Length= 00000017 Public STDCALL
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-DrawPlayer . . . . . . . . . . .	P Near	 000000E4 _TEXT	Length= 00000019 Public STDCALL
+DrawCoin . . . . . . . . . . . .	P Near	 00000149 _TEXT	Length= 00000023 Public STDCALL
+DrawPlayer . . . . . . . . . . .	P Near	 00000117 _TEXT	Length= 00000019 Public STDCALL
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ExitProcess  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -357,7 +420,7 @@ Str_length . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 Str_trim . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_ucase  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SystemTimeToFileTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-UpdatePlayer . . . . . . . . . .	P Near	 000000FD _TEXT	Length= 00000019 Public STDCALL
+UpdatePlayer . . . . . . . . . .	P Near	 00000130 _TEXT	Length= 00000019 Public STDCALL
 WaitMsg  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteBinB  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteBin . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -376,16 +439,16 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000000E4 Public STDCALL
-  gameLoop . . . . . . . . . . .	L Near	 00000018 _TEXT	
-  gravity  . . . . . . . . . . .	L Near	 00000018 _TEXT	
-  onGround . . . . . . . . . . .	L Near	 0000003D _TEXT	
-  moveUp . . . . . . . . . . . .	L Near	 00000078 _TEXT	
-  jumpLoop . . . . . . . . . . .	L Near	 0000007D _TEXT	
-  moveDown . . . . . . . . . . .	L Near	 0000009E _TEXT	
-  moveLeft . . . . . . . . . . .	L Near	 000000B3 _TEXT	
-  moveRight  . . . . . . . . . .	L Near	 000000C8 _TEXT	
-  ExitGame . . . . . . . . . . .	L Near	 000000DD _TEXT	
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000117 Public STDCALL
+  gameLoop . . . . . . . . . . .	L Near	 00000022 _TEXT	
+  gravity  . . . . . . . . . . .	L Near	 0000004B _TEXT	
+  onGround . . . . . . . . . . .	L Near	 00000070 _TEXT	
+  moveUp . . . . . . . . . . . .	L Near	 000000AB _TEXT	
+  jumpLoop . . . . . . . . . . .	L Near	 000000B0 _TEXT	
+  moveDown . . . . . . . . . . .	L Near	 000000D1 _TEXT	
+  moveLeft . . . . . . . . . . .	L Near	 000000E6 _TEXT	
+  moveRight  . . . . . . . . . .	L Near	 000000FB _TEXT	
+  ExitGame . . . . . . . . . . .	L Near	 00000110 _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -612,7 +675,7 @@ exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
 ground . . . . . . . . . . . . .	Byte	 00000000 _DATA	
-inputChar  . . . . . . . . . . .	Byte	 00000065 _DATA	
+inputChar  . . . . . . . . . . .	Byte	 00000081 _DATA	
 lightBlue  . . . . . . . . . . .	Number	 00000009h   
 lightCyan  . . . . . . . . . . .	Number	 0000000Bh   
 lightGray  . . . . . . . . . . .	Number	 00000007h   
@@ -621,10 +684,14 @@ lightMagenta . . . . . . . . . .	Number	 0000000Dh
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
 red  . . . . . . . . . . . . . .	Number	 00000004h   
+score  . . . . . . . . . . . . .	Byte	 0000007C _DATA	
+strScore . . . . . . . . . . . .	Byte	 00000074 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
-xPos . . . . . . . . . . . . . .	Byte	 00000063 _DATA	
-yPos . . . . . . . . . . . . . .	Byte	 00000064 _DATA	
+xCoinPos . . . . . . . . . . . .	Byte	 0000007F _DATA	
+xPos . . . . . . . . . . . . . .	Byte	 0000007D _DATA	
+yCoinPos . . . . . . . . . . . .	Byte	 00000080 _DATA	
+yPos . . . . . . . . . . . . . .	Byte	 0000007E _DATA	
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
 
 	   0 Warnings
