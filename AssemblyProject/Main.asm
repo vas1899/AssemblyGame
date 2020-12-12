@@ -44,6 +44,10 @@ main PROC
 	; Infinite loop
 	gameLoop:
 
+		; if score is 10 end the game
+		cmp score,10
+		je ExitGame
+
 		; getting points:
 		; compare xPos and xCoinPos
 		mov bl,xPos
