@@ -39,8 +39,26 @@ main PROC
 	call CreateRandomCoin 
 	call DrawCoin 
 
+	call Randomize
+
 	; Infinite loop
 	gameLoop:
+
+		; getting points:
+		; compare xPos and xCoinPos
+		mov bl,xPos
+		cmp bl,xCoinPos	
+		jne	notCollecting ; if true just to this
+		mov bl,yPos
+		cmp bl,yCoinPos	
+		jne	notCollecting
+		; player hits the coin
+		inc score 
+		call CreateRandomCoin	
+		call DrawCoin	
+
+		notCollecting:
+
 		; set the color to normal, otherwise makes everything the color of the coin
 		mov eax, white (black *16)
 		call SetTextColor
@@ -56,7 +74,6 @@ main PROC
 		mov al, score
 		add al, '0' ; int into char
 		call WriteChar
-		
 		; while the player's position is greater to the ground
 		gravity:
 		cmp yPos,27
@@ -94,13 +111,13 @@ main PROC
 
 		moveUp:
 		; change to ecx register so we can loop
-		mov ecx, 3
+		mov ecx,1
 		jumpLoop:
 			call UpdatePlayer
 			; decrease
 			dec	yPos
 			call DrawPlayer	
-			mov eax,10
+			mov eax,90 
 			call Delay
 			loop jumpLoop
 		jmp	gameLoop
@@ -169,7 +186,8 @@ DrawCoin ENDP
 
 ; random positoin of the coin, it does not draw it
 CreateRandomCoin PROC 
-	mov eax,55
+	mov eax,35
+	inc eax ; so coins are not generated outside of the screen
 	call RandomRange
 	; al is 8 bit, that is why it is used
 	mov xCoinPos,al
