@@ -52,7 +52,7 @@ main PROC
 		; compare xPos and xCoinPos
 		mov bl,xPos
 		cmp bl,xCoinPos	
-		jne	notCollecting ; if true just to this
+		jne	notCollecting ; if not equal, do this
 		mov bl,yPos
 		cmp bl,yCoinPos	
 		jne	notCollecting
@@ -87,7 +87,7 @@ main PROC
 		inc yPos
 		call DrawPlayer	
 		; Delay the fall of the player
-		mov eax,80
+		mov eax,90
 		call Delay
 
 		jmp	gravity
@@ -103,9 +103,6 @@ main PROC
 
 		cmp inputChar,"w"
 		je moveUp
-
-		cmp inputChar,"s"
-		je moveDown
 	
 		cmp inputChar,"a"
 		je moveLeft
@@ -124,13 +121,6 @@ main PROC
 			mov eax,90 
 			call Delay
 			loop jumpLoop
-		jmp	gameLoop
-
-		moveDown:
-		call UpdatePlayer
-		; increase
-		inc yPos
-		call DrawPlayer
 		jmp	gameLoop
 
 		moveLeft:
